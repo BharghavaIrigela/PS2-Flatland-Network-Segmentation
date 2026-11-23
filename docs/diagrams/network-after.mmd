@@ -1,0 +1,12 @@
+flowchart LR
+  subgraph USER[USER 10.20.10.0/24]; ws[ws .10]; end
+  subgraph DMZ[DMZ 10.20.20.0/24]; web[web .20 nginx:443]; end
+  subgraph SERVER[SERVER 10.20.30.0/24]; app[app .30 :8080]; db[(db .40 :5432)]; files[files .50 SMB]; end
+  subgraph MGMT[MGMT 10.20.99.0/24]; admin[admin .60]; end
+  R{{router .254<br/>nftables default-deny}}
+  ws -- 443 --> R --> web
+  web -- 8080 --> R --> app
+  app -- 5432 --> db
+  app -- 445 --> files
+  admin -- "22 (rate-limited)" --> R
+  ws -. "22/445/5432 DROPPED + logged" .-> R
